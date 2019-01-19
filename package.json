@@ -1,0 +1,16 @@
+{
+  "name": "teste-mercado-livre",
+  "version": "1.0.0",
+  "description": "Teste de conhecimentos do mercado livre",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon app.js"
+  },
+  "author": "Felipe",
+  "license": "ISC",
+  "dependencies": {
+    "consign": "^0.1.6",
+    "mongoose": "^5.4.4",
+    "restify": "^7.5.0"
+  }
+}
