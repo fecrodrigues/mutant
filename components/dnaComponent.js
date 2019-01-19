@@ -63,7 +63,9 @@ module.exports = (app) => {
         for(let index=0; index < diagonalLength;index++) {
           console.log(dna[index + lineIndex][index]);
 
-          //console.log(dna[index][index + lineIndex]);
+          if(lineIndex !== 0) {
+            console.log(dna[index][index + lineIndex]);
+          }
 
         }
         console.log('FIM VERIFICACAO DIAGONAL LINHA')
