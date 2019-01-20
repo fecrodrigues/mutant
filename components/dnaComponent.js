@@ -7,22 +7,27 @@ module.exports = (app) => {
 
     checkDna(req, res, next) {
       if(req.body && req.body.dna) {
-        let isMutant = dnaComponent.checkMutant(req.body.dna);
+        let {isMutant, invalidDna} = dnaComponent.checkMutant(req.body.dna);
 
         //Verificando se DNA existe na base
-        Dna.find({dna: req.body.dna}, (err, foundDna) => {
-          if(err) res.send(400);
+        if(!invalidDna) {
+          Dna.find({dna: req.body.dna}, (err, foundDna) => {
+            if(err) res.send(400);
 
-          if(foundDna.length === 0) {
-            //Salvando DNA não existente na base
-            const dna = new Dna({ dna: req.body.dna, type: isMutant? 'mutant':'human' });
-            dna.save().then(() => {
+            if(foundDna.length === 0) {
+              //Salvando DNA não existente na base
+              const dna = new Dna({ dna: req.body.dna, type: isMutant? 'mutant':'human' });
+              dna.save().then(() => {
+                dnaComponent.sendResponse(res, isMutant);
+              });
+            } else {
               dnaComponent.sendResponse(res, isMutant);
-            });
-          } else {
-            dnaComponent.sendResponse(res, isMutant);
-          }
-        })
+            }
+          })
+        } else {
+          res.status(400);
+          res.json({"message": "DNA invalid!"});
+        }
       } else {
         res.status(400);
         res.json({"message": "DNA not informed!"});
@@ -35,19 +40,18 @@ module.exports = (app) => {
       let columnLength = dna.length;
       let lineLength = dna[0].length;
       let diagonalMaxLength = columnLength > lineLength? lineLength:columnLength;
-      let findSequenceHorizontal = false, findSequenceVertical = false, findSequenceDiagonal = false;
+      let findSequenceHorizontal = false, findSequenceVertical = false, findSequenceDiagonal = false, invalidDna = false;
 
       if(columnLength < 4 || lineLength < 4) {
         return false;
       }
 
       dna.forEach((dnaSequence, index) => {
-        //console.log(dnaSequence, 'sequence')
-        //console.log('VERIFICANDO LINHA')
 
         let lastLetter = '' , sequenceCount = 0;
         for(let index = 0; index < dnaSequence.length; index++) {
           //console.log(dnaSequence[index]);
+          invalidDna = invalidDna? invalidDna:dnaComponent.checkInvalidLetter(dnaSequence[index]);
 
           //VERIFICANDO LINHA
           if(!findSequenceHorizontal) {
@@ -66,16 +70,14 @@ module.exports = (app) => {
           }
 
         }
-        //console.log('FIM VERIFICACAO LINHA')
-      });
 
-      //console.log(findSequenceHorizontal, findSequenceVertical, findSequenceDiagonal, 'checks')
+      });
 
       if(findSequenceHorizontal && findSequenceVertical && findSequenceDiagonal) {
         isMutant = true;
       }
 
-      return isMutant;
+      return {isMutant: isMutant, invalidDna: invalidDna};
     },
 
     checkDnaDiagonal(dna, lineIndex, diagonalMaxLength) {
@@ -84,14 +86,13 @@ module.exports = (app) => {
       let lastLetterDiagonal1 = '', sequenceCountDiagonal1 = 0;
       let lastLetterDiagonal2 = '', sequenceCountDiagonal2 = 0;
       if(diagonalLength >= 4) {
-        //console.log('VERIFICANDO DIAGONAL LINHA')
         for(let index=0; index < diagonalLength;index++) {
           //console.log(dna[index + lineIndex][index]);
           let checkedValues = dnaComponent.checkLetterSequence(
             lastLetterDiagonal1, sequenceCountDiagonal1, dna[index + lineIndex][index]);
 
           if(checkedValues[2] === true) {
-            return true
+            return true;
           }
           lastLetterDiagonal1 = checkedValues[0], sequenceCountDiagonal1 = checkedValues[1];
 
@@ -101,13 +102,12 @@ module.exports = (app) => {
               lastLetterDiagonal2, sequenceCountDiagonal2, dna[index + lineIndex][index]);
 
             if(checkedValues[2] === true) {
-              return true
+              return true;
             }
             lastLetterDiagonal2 = checkedValues[0], sequenceCountDiagonal2 = checkedValues[1];
           }
 
         }
-        //console.log('FIM VERIFICACAO DIAGONAL LINHA')
       } else {
         return false;
       }
@@ -115,21 +115,18 @@ module.exports = (app) => {
     },
 
     checkDnaColumn(dna, columnIndex, columnLength) {
-      //console.log('PERCORRENDO COLUNA')
-
       let lastLetter = '', sequenceCount = 0;
       for(let index=0; index < columnLength; index++) {
         //console.log(dna[index][columnIndex])
         let checkedValues = dnaComponent.checkLetterSequence(lastLetter, sequenceCount, dna[index][columnIndex]);
         if(checkedValues[2] === true) {
-          return true
+          return true;
         }
 
         lastLetter = checkedValues[0], sequenceCount = checkedValues[1];
       }
 
       return false;
-      //console.log('FIM DA COLUNA')
     },
 
     checkLetterSequence(lastLetter, sequenceCount, letter) {
@@ -147,6 +144,14 @@ module.exports = (app) => {
       }
 
       return [lastLetter, sequenceCount, false];
+    },
+
+    checkInvalidLetter(letter) {
+      if(letter === 'A' || letter === 'T' || letter === 'C' || letter === 'G') {
+        return false;
+      }
+
+      return true;
     },
 
     sendResponse(res, isMutant) {
