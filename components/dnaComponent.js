@@ -160,8 +160,11 @@ module.exports = (app) => {
     },
 
     sendResponse(res, isMutant) {
-      if(isMutant) res.send(200);
-      res.send(403);
+      if(isMutant) {
+        res.send(200);
+      } else {
+        res.send(403);
+      }
     },
 
     checkStats(req, res, next) {
