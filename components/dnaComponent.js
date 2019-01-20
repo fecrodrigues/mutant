@@ -51,18 +51,8 @@ module.exports = (app) => {
 
           //VERIFICANDO LINHA
           if(!findSequenceHorizontal) {
-            if(!lastLetter) {
-              lastLetter = dnaSequence[index];
-              sequenceCount++;
-            } else if(lastLetter === dnaSequence[index]) {
-              sequenceCount++;
-              if(sequenceCount === 4) {
-                findSequenceHorizontal = true;
-              }
-            } else {
-              lastLetter = dnaSequence[index];
-              sequenceCount=1;
-            }
+            let checkedValues = dnaComponent.checkLetterSequence(lastLetter, sequenceCount, dnaSequence[index]);
+            lastLetter = checkedValues[0], sequenceCount = checkedValues[1], findSequenceHorizontal = checkedValues[2];
           }
 
           //VERIFICANDO COLUNA
@@ -77,8 +67,7 @@ module.exports = (app) => {
 
         }
         //console.log('FIM VERIFICACAO LINHA')
-
-      })
+      });
 
       //console.log(findSequenceHorizontal, findSequenceVertical, findSequenceDiagonal, 'checks')
 
@@ -98,33 +87,23 @@ module.exports = (app) => {
         //console.log('VERIFICANDO DIAGONAL LINHA')
         for(let index=0; index < diagonalLength;index++) {
           //console.log(dna[index + lineIndex][index]);
-          if(!lastLetterDiagonal1) {
-            lastLetterDiagonal1 = dna[index + lineIndex][index];
-            sequenceCountDiagonal1++;
-          } else if(lastLetterDiagonal1 === dna[index + lineIndex][index]) {
-            sequenceCountDiagonal1++;
-            if(sequenceCountDiagonal1 === 4) {
-              return true;
-            }
-          } else {
-            lastLetterDiagonal1 = dna[index + lineIndex][index];
-            sequenceCountDiagonal1=1;
+          let checkedValues = dnaComponent.checkLetterSequence(
+            lastLetterDiagonal1, sequenceCountDiagonal1, dna[index + lineIndex][index]);
+
+          if(checkedValues[2] === true) {
+            return true
           }
+          lastLetterDiagonal1 = checkedValues[0], sequenceCountDiagonal1 = checkedValues[1];
 
           if(lineIndex !== 0) {
             //console.log(dna[index][index + lineIndex]);
-            if(!lastLetterDiagonal2) {
-              lastLetterDiagonal2 = dna[index][index + lineIndex];
-              sequenceCountDiagonal2++;
-            } else if(lastLetterDiagonal2 === dna[index][index + lineIndex]) {
-              sequenceCountDiagonal2++;
-              if(sequenceCountDiagonal2 === 4) {
-                return true;
-              }
-            } else {
-              lastLetterDiagonal2 = dna[index][index + lineIndex];
-              sequenceCountDiagonal2=1;
+            let checkedValues = dnaComponent.checkLetterSequence(
+              lastLetterDiagonal2, sequenceCountDiagonal2, dna[index + lineIndex][index]);
+
+            if(checkedValues[2] === true) {
+              return true
             }
+            lastLetterDiagonal2 = checkedValues[0], sequenceCountDiagonal2 = checkedValues[1];
           }
 
         }
@@ -141,22 +120,33 @@ module.exports = (app) => {
       let lastLetter = '', sequenceCount = 0;
       for(let index=0; index < columnLength; index++) {
         //console.log(dna[index][columnIndex])
-        if(!lastLetter) {
-          lastLetter = dna[index][columnIndex];
-          sequenceCount++;
-        } else if(lastLetter === dna[index][columnIndex]) {
-          sequenceCount++;
-          if(sequenceCount === 4) {
-            return true;
-          }
-        } else {
-          lastLetter = dna[index][columnIndex];
-          sequenceCount=1;
+        let checkedValues = dnaComponent.checkLetterSequence(lastLetter, sequenceCount, dna[index][columnIndex]);
+        if(checkedValues[2] === true) {
+          return true
         }
+
+        lastLetter = checkedValues[0], sequenceCount = checkedValues[1];
       }
 
       return false;
       //console.log('FIM DA COLUNA')
+    },
+
+    checkLetterSequence(lastLetter, sequenceCount, letter) {
+      if(!lastLetter) {
+        lastLetter = letter;
+        sequenceCount++;
+      } else if(lastLetter === letter) {
+        sequenceCount++;
+        if(sequenceCount === 4) {
+          return [lastLetter, sequenceCount, true]
+        }
+      } else {
+        lastLetter = letter;
+        sequenceCount=1;
+      }
+
+      return [lastLetter, sequenceCount, false];
     },
 
     sendResponse(res, isMutant) {
