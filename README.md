@@ -6,3 +6,9 @@ Foi utilizado o banco de dados NoSQL mongodb e a linguagem Javascript(NodeJs) pa
 
 # Como executar o projeto
 - Para execução do projeto fazer um clone do branch master, executar os comandos NPM "npm install" para instalar as dependências do projeto e "npm start" para inicia-lo.
+
+# Urls para teste
+
+- Utilizar estas urls para o testes da API
+- https://nodejs-mutant.appspot.com/mutant
+- https://nodejs-mutant.appspot.com/stats
