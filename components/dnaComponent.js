@@ -35,22 +35,56 @@ module.exports = (app) => {
       let columnLength = dna.length;
       let lineLength = dna[0].length;
       let diagonalMaxLength = columnLength > lineLength? lineLength:columnLength;
+      let findSequenceHorizontal = false, findSequenceVertical = false, findSequenceDiagonal = false;
 
       if(columnLength < 4 || lineLength < 4) {
         return false;
       }
 
       dna.forEach((dnaSequence, index) => {
-        console.log(dnaSequence, 'sequence')
-        console.log('VERIFICANDO LINHA')
+        //console.log(dnaSequence, 'sequence')
+        //console.log('VERIFICANDO LINHA')
+
+        let lastLetter = '' , sequenceCount = 0;
         for(let index = 0; index < dnaSequence.length; index++) {
-          console.log(dnaSequence[index]);
-          dnaComponent.checkDnaColumn(dna, index, columnLength);
-          dnaComponent.checkDnaDiagonal(dna, index, diagonalMaxLength);
+          //console.log(dnaSequence[index]);
+
+          //VERIFICANDO LINHA
+          if(!findSequenceHorizontal) {
+            if(!lastLetter) {
+              lastLetter = dnaSequence[index];
+              sequenceCount++;
+            } else if(lastLetter === dnaSequence[index]) {
+              sequenceCount++;
+              if(sequenceCount === 4) {
+                findSequenceHorizontal = true;
+              }
+            } else {
+              lastLetter = dnaSequence[index];
+              sequenceCount=1;
+            }
+          }
+
+          //VERIFICANDO COLUNA
+          if(!findSequenceVertical) {
+            findSequenceVertical = dnaComponent.checkDnaColumn(dna, index, columnLength);
+          }
+
+          //VERIFICANDO DIAGONAIS
+          if(!findSequenceDiagonal) {
+            findSequenceDiagonal = dnaComponent.checkDnaDiagonal(dna, index, diagonalMaxLength);
+          }
+
         }
-        console.log('FIM VERIFICACAO LINHA')
+        //console.log('FIM VERIFICACAO LINHA')
 
       })
+
+      //console.log(findSequenceHorizontal, findSequenceVertical, findSequenceDiagonal, 'checks')
+
+      if(findSequenceHorizontal && findSequenceVertical && findSequenceDiagonal) {
+        isMutant = true;
+      }
 
       return isMutant;
     },
@@ -58,17 +92,43 @@ module.exports = (app) => {
     checkDnaDiagonal(dna, lineIndex, diagonalMaxLength) {
       let diagonalLength = diagonalMaxLength - (lineIndex);
 
+      let lastLetterDiagonal1 = '', sequenceCountDiagonal1 = 0;
+      let lastLetterDiagonal2 = '', sequenceCountDiagonal2 = 0;
       if(diagonalLength >= 4) {
-        console.log('VERIFICANDO DIAGONAL LINHA')
+        //console.log('VERIFICANDO DIAGONAL LINHA')
         for(let index=0; index < diagonalLength;index++) {
-          console.log(dna[index + lineIndex][index]);
+          //console.log(dna[index + lineIndex][index]);
+          if(!lastLetterDiagonal1) {
+            lastLetterDiagonal1 = dna[index + lineIndex][index];
+            sequenceCountDiagonal1++;
+          } else if(lastLetterDiagonal1 === dna[index + lineIndex][index]) {
+            sequenceCountDiagonal1++;
+            if(sequenceCountDiagonal1 === 4) {
+              return true;
+            }
+          } else {
+            lastLetterDiagonal1 = dna[index + lineIndex][index];
+            sequenceCountDiagonal1=1;
+          }
 
           if(lineIndex !== 0) {
-            console.log(dna[index][index + lineIndex]);
+            //console.log(dna[index][index + lineIndex]);
+            if(!lastLetterDiagonal2) {
+              lastLetterDiagonal2 = dna[index][index + lineIndex];
+              sequenceCountDiagonal2++;
+            } else if(lastLetterDiagonal2 === dna[index][index + lineIndex]) {
+              sequenceCountDiagonal2++;
+              if(sequenceCountDiagonal2 === 4) {
+                return true;
+              }
+            } else {
+              lastLetterDiagonal2 = dna[index][index + lineIndex];
+              sequenceCountDiagonal2=1;
+            }
           }
 
         }
-        console.log('FIM VERIFICACAO DIAGONAL LINHA')
+        //console.log('FIM VERIFICACAO DIAGONAL LINHA')
       } else {
         return false;
       }
@@ -76,12 +136,27 @@ module.exports = (app) => {
     },
 
     checkDnaColumn(dna, columnIndex, columnLength) {
-      console.log('PERCORRENDO COLUNA')
+      //console.log('PERCORRENDO COLUNA')
+
+      let lastLetter = '', sequenceCount = 0;
       for(let index=0; index < columnLength; index++) {
-        console.log(dna[index][columnIndex])
+        //console.log(dna[index][columnIndex])
+        if(!lastLetter) {
+          lastLetter = dna[index][columnIndex];
+          sequenceCount++;
+        } else if(lastLetter === dna[index][columnIndex]) {
+          sequenceCount++;
+          if(sequenceCount === 4) {
+            return true;
+          }
+        } else {
+          lastLetter = dna[index][columnIndex];
+          sequenceCount=1;
+        }
       }
 
-      console.log('FIM DA COLUNA')
+      return false;
+      //console.log('FIM DA COLUNA')
     },
 
     sendResponse(res, isMutant) {
